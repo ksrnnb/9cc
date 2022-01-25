@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  ubuntu:
+    build: ./
+    volumes:
+      - ./workspace:/var/workspace/
+    tty: true
+    privileged: true
