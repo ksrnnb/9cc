@@ -19,21 +19,29 @@ struct Token {
     char *str;
 };
 
+// 入力プログラム
+char *user_input;
+
+// エラー箇所を出力
+void error_at(char *loc, char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+
+    int pos = loc - user_input;
+    fprintf(stderr, "%s\n", user_input);
+    fprintf(stderr, "%*s", pos, " ");  // pos個の空白を出力
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(EXIT_FAILURE);
+}
+
 // 現在みているトークン
 Token *token;
 
 // 期待している記号かどうか
 bool isExpectedSymbol(char expected) {
     return token->kind == TK_RESERVED && token->str[0] == expected;
-}
-
-// エラー出力
-void error(char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    exit(EXIT_FAILURE);
 }
 
 // 期待している記号である場合、トークンを1つ読み進んでtrueを返す
@@ -46,14 +54,14 @@ bool consume(char op) {
 
 // 期待している記号であるときは、トークンを1つ読み進める
 void expect(char op) {
-    if (!isExpectedSymbol(op)) error("'%c'ではありません", op);
+    if (!isExpectedSymbol(op)) error_at(token->str, "'%c'ではありません", op);
 
     token = token->next;
 }
 
 // 数字の場合はトークンを1つ進めて、数字を返す
 int expect_number() {
-    if (token->kind != TK_NUM) error("数ではありません");
+    if (token->kind != TK_NUM) error_at(token->str, "数ではありません");
 
     int val = token->val;
     token = token->next;
@@ -77,7 +85,8 @@ Token *new_token(TokenKind kind, Token *cur, char *str) {
 
 // 受け取った文字列からトークン化する
 // トークンは連結リストとなる
-Token *tokenize(char *p) {
+Token *tokenize() {
+    char *p = user_input;
     Token head;
     head.next = NULL;
     Token *cur = &head;
@@ -99,7 +108,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        error("トークナイズできません");
+        error_at(p, "トークナイズできません");
     }
 
     new_token(TK_EOF, cur, p);
@@ -112,7 +121,8 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    token = tokenize(argv[1]);
+    user_input = argv[1];
+    token = tokenize();
 
     printf(".intel_syntax noprefix\n");
     printf(".globl main\n");
