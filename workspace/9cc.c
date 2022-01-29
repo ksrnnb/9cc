@@ -16,6 +16,10 @@ typedef enum {
     ND_SUB,  // -
     ND_MUL,  // *
     ND_DIV,  // /
+    ND_EQ,   // ==
+    ND_NE,   // !=
+    ND_LT,   // <
+    ND_LTE,  // <=
     ND_NUM,  // 整数
 } NodeKind;
 
@@ -38,10 +42,13 @@ struct Node {
     int val;        // kindがND_NUMの場合に使用
 };
 
-Node *primary();
 Node *expr();
-Node *unary();
+Node *equality();
+Node *relational();
+Node *add();
 Node *mul();
+Node *unary();
+Node *primary();
 
 // 入力プログラム
 char *user_input;
@@ -70,9 +77,8 @@ bool starts_with(char *haystack, char *needle) {
 
 // 期待している記号かどうか
 bool isExpectedSymbol(char *expected) {
-    return token->kind == TK_RESERVED &&
-            strlen(expected) == token->len &&
-            memcmp(token->str, expected, token->len) == 0;
+    return token->kind == TK_RESERVED && strlen(expected) == token->len &&
+           memcmp(token->str, expected, token->len) == 0;
 }
 
 // 期待している記号である場合、トークンを1つ読み進んでtrueを返す
@@ -129,7 +135,8 @@ Token *tokenize() {
             continue;
         }
 
-        if (starts_with(p, ">=") || starts_with(p, "<=") || starts_with(p, "==") || starts_with(p, "!=")) {
+        if (starts_with(p, ">=") || starts_with(p, "<=") ||
+            starts_with(p, "==") || starts_with(p, "!=")) {
             cur = new_token(TK_RESERVED, cur, p, 2);
             p += 2;
             continue;
@@ -145,7 +152,8 @@ Token *tokenize() {
             char *q = p;
             // 有効でない文字が現れたら、そこで変換が終了する。
             cur->val = strtol(p, &p, 10);
-            // はじめの文字の位置から、数字分だけ進んだ位置を引く => トークンの長さがわかる
+            // はじめの文字の位置から、数字分だけ進んだ位置を引く
+            // =>トークンの長さがわかる
             cur->len = q - p;
             continue;
         }
@@ -173,7 +181,41 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *expr() {
+Node *expr() { return equality(); }
+
+Node *equality() {
+    Node *node = relational();
+
+    for (;;) {
+        if (consume("==")) {
+            node = new_node(ND_EQ, node, relational());
+        } else if (consume("!=")) {
+            node = new_node(ND_NE, node, relational());
+        } else {
+            return node;
+        }
+    }
+}
+
+Node *relational() {
+    Node *node = add();
+
+    for (;;) {
+        if (consume("<")) {
+            node = new_node(ND_LT, node, add());
+        } else if (consume(">")) {
+            node = new_node(ND_LT, add(), node);
+        } else if (consume("<=")) {
+            node = new_node(ND_LTE, node, add());
+        } else if (consume(">=")) {
+            node = new_node(ND_LTE, add(), node);
+        } else {
+            return node;
+        }
+    }
+}
+
+Node *add() {
     Node *node = mul();
 
     for (;;) {
@@ -246,6 +288,26 @@ void gen(Node *node) {
         case ND_DIV:
             printf("    cqo\n");
             printf("    idiv rdi\n");
+            break;
+        case ND_EQ:
+            printf("    cmp rax, rdi\n");
+            printf("    sete al\n");
+            printf("    movzb rax, al\n");
+            break;
+        case ND_NE:
+            printf("    cmp rax, rdi\n");
+            printf("    setne al\n");
+            printf("    movzb rax, al\n");
+            break;
+        case ND_LT:
+            printf("    cmp rax, rdi\n");
+            printf("    setl al\n");
+            printf("    movzb rax, al\n");
+            break;
+        case ND_LTE:
+            printf("    cmp rax, rdi\n");
+            printf("    setle al\n");
+            printf("    movzb rax, al\n");
             break;
     }
 
