@@ -18,12 +18,27 @@ typedef enum {
     ND_NUM,     // 整数
 } NodeKind;
 
+typedef enum {
+    TK_RESERVED,  // 記号
+    TK_IDENT,     // 識別子
+    TK_NUM,       // 数字
+    TK_EOF,       // 終端
+} TokenKind;
+
 struct Node {
     NodeKind kind;  // ノードの型
     Node *lhs;      // 左辺
     Node *rhs;      // 右辺
     int val;        // kindがND_NUMの場合に使用
     int offset;     // kindかND_LVARの場合に使用
+};
+
+struct Token {
+    TokenKind kind;
+    Token *next;
+    int val;
+    char *str;
+    int len;
 };
 
 // 入力プログラム
@@ -49,3 +64,9 @@ int expect_number();
 
 // 期待している記号である場合、トークンを1つ読み進んでtrueを返す
 bool consume(char *op);
+
+// 識別子の場合、現在のトークンを返して、トークンを1つ進める
+Token *consume_ident();
+
+// 終端かどうか
+bool at_eof();

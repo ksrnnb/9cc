@@ -10,23 +10,6 @@
 // 入力プログラム
 char *user_input;
 
-typedef enum {
-    TK_RESERVED,  // 記号
-    TK_IDENT,     // 識別子
-    TK_NUM,       // 数字
-    TK_EOF,       // 終端
-} TokenKind;
-
-typedef struct Token Token;
-
-struct Token {
-    TokenKind kind;
-    Token *next;
-    int val;
-    char *str;
-    int len;
-};
-
 // 現在みているトークン
 Token *token;
 
@@ -61,6 +44,16 @@ bool consume(char *op) {
 
     token = token->next;
     return true;
+}
+
+Token *consume_ident() {
+    if (token->kind != TK_IDENT) {
+        return NULL;
+    }
+
+    Token *retToken = token;
+    token = token->next;
+    return retToken;
 }
 
 // 期待している記号であるときは、トークンを1つ読み進める
