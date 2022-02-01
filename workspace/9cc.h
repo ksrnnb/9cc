@@ -4,6 +4,8 @@ typedef struct Node Node;
 
 typedef struct Token Token;
 
+typedef struct LVar LVar;
+
 typedef enum {
     ND_ADD,     // +
     ND_SUB,     // -
@@ -41,6 +43,17 @@ struct Token {
     int len;
 };
 
+// ローカル変数の型
+struct LVar {
+    LVar *next;
+    char *name;
+    int len;
+    int offset;  // RBPからのオフセット
+};
+
+// ローカル変数
+LVar *locals;
+
 // 入力プログラム
 extern char *user_input;
 
@@ -73,3 +86,6 @@ Token *consume_ident();
 
 // 終端かどうか
 bool at_eof();
+
+// 変数を名前で検索する
+LVar *find_lvar(Token *tok);

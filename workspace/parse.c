@@ -146,6 +146,20 @@ Node *primary() {
 
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;
-    node->offset = (tok->str[0] - 'a' + 1) * IDENT_SIZE;
+
+    LVar *lvar = find_lvar(tok);
+    if (lvar) {
+        node->offset = lvar->offset;
+        return node;
+    }
+
+    lvar = calloc(1, sizeof(LVar));
+    lvar->next = locals;
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    lvar->offset = locals->offset + IDENT_SIZE;
+    node->offset = lvar->offset;
+    locals = lvar;
+
     return node;
 }

@@ -44,10 +44,8 @@ assert 0 "1==2;"
 assert 1 "1!=2;"
 assert 0 "2!=2;"
 
-assert 1 "i=4; i==4;"
-assert 1 "i=4; i!=3;"
-assert 0 "i=4; i!=4;"
-assert 0 "i=4; i==3;"
+assert 1 "foo=4; foo==4;"
+assert 1 "bar=4; bar!=3;"
 assert 0 "a=4; b=3; a==b;"
 assert 1 "a=4; b=4; a==b;"
 
