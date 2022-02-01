@@ -47,11 +47,14 @@ extern char *user_input;
 // 現在みているトークン
 extern Token *token;
 
+// 解析したstatementを格納する
+extern Node *code[100];
+
 // トークン生成
 Token *tokenize();
 
-// 再帰下降構文解析
-Node *expr();
+// 構文解析
+void program();
 
 // コード生成
 void gen(Node *node);
