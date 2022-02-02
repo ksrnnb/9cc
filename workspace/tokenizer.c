@@ -128,6 +128,12 @@ Token *tokenize() {
             continue;
         }
 
+        if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
+            cur = new_token(TK_RESERVED, cur, p, 4);
+            p += 4;
+            continue;
+        }
+
         // 現段階では、記号や数字は識別子に含めない
         if (*p >= 'a' && *p <= 'z') {
             char *pp = p;

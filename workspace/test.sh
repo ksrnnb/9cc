@@ -52,6 +52,7 @@ assert 1 "a=4; b=4; a==b;"
 assert 5 "return 5;"
 
 assert 5 "a = 1; if (a == 1) 5;"
-# assert 0 "a = 1; if (a == 1) 5; else 0;"
+assert 5 "a = 1; if (a == 1) 5; else 0;"
+assert 0 "a = 10; if (a == 1) 5; else 0;"
 
 echo OK

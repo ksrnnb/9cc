@@ -31,6 +31,18 @@ void gen(Node *node) {
             printf(".Lend%d:\n", goto_label);
             goto_label++;
             return;
+        case ND_IF_ELSE:
+            gen(node->cond);
+            printf("    pop rax\n");
+            printf("    cmp rax, 0\n");
+            printf("    je  .Lelse%d\n", goto_label);
+            gen(node->then);
+            printf("   jmp .Lend%d\n", goto_label);
+            printf(".Lelse%d:\n", goto_label);
+            gen(node->els);
+            printf(".Lend%d:\n", goto_label);
+            goto_label++;
+            return;
         case ND_RETURN:
             gen(node->lhs);
             printf("    pop rax\n");
