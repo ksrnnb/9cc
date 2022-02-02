@@ -82,6 +82,12 @@ int expect_number() {
 // 終端かどうか
 bool at_eof() { return token->kind == TK_EOF; }
 
+// 英数字か、アンダースコアのいずれか
+bool is_alnum(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+           (c >= '0' && c <= '9') || (c == '_');
+}
+
 // トークンの新規作成
 // 新しくトークンを作成して、カーソルの次のトークンに新規作成したトークンを指定
 Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
@@ -106,6 +112,14 @@ Token *tokenize() {
     while (*p) {
         if (isspace(*p)) {
             p++;
+            continue;
+        }
+
+        // returnの次が英数字、アンダースコアでないこと
+        // spaceであることを確認するのではダメなのか？
+        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+            cur = new_token(TK_RESERVED, cur, p, 6);
+            p += 6;
             continue;
         }
 

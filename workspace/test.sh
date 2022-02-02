@@ -49,4 +49,6 @@ assert 1 "bar=4; bar!=3;"
 assert 0 "a=4; b=3; a==b;"
 assert 1 "a=4; b=4; a==b;"
 
+assert 5 "return 5;"
+
 echo OK

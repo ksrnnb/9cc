@@ -18,9 +18,11 @@ typedef enum {
     ND_ASSIGN,  // =
     ND_LVAR,    // ローカル変数
     ND_NUM,     // 整数
+    ND_RETURN,  // return
 } NodeKind;
 
 typedef enum {
+    TK_RETURN,    // return
     TK_RESERVED,  // 記号
     TK_IDENT,     // 識別子
     TK_NUM,       // 数字
