@@ -55,4 +55,7 @@ assert 5 "a = 1; if (a == 1) 5;"
 assert 5 "a = 1; if (a == 1) 5; else 0;"
 assert 0 "a = 10; if (a == 1) 5; else 0;"
 
+assert 10 "i = 1; while(i < 10) i = i + 1; return i;"
+assert 1 "i = 1; while(i > 10) i = i + 1; return i;"
+
 echo OK
