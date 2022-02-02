@@ -7,22 +7,23 @@ typedef struct Token Token;
 typedef struct LVar LVar;
 
 typedef enum {
-    ND_ADD,     // +
-    ND_SUB,     // -
-    ND_MUL,     // *
-    ND_DIV,     // /
-    ND_EQ,      // ==
-    ND_NE,      // !=
-    ND_LT,      // <
-    ND_LTE,     // <=
-    ND_ASSIGN,  // =
-    ND_LVAR,    // ローカル変数
-    ND_NUM,     // 整数
-    ND_RETURN,  // return
+    ND_ADD,      // +
+    ND_SUB,      // -
+    ND_MUL,      // *
+    ND_DIV,      // /
+    ND_EQ,       // ==
+    ND_NE,       // !=
+    ND_LT,       // <
+    ND_LTE,      // <=
+    ND_ASSIGN,   // =
+    ND_LVAR,     // ローカル変数
+    ND_NUM,      // 整数
+    ND_RETURN,   // return
+    ND_IF,       // if
+    ND_IF_ELSE,  // if-else
 } NodeKind;
 
 typedef enum {
-    TK_RETURN,    // return
     TK_RESERVED,  // 記号
     TK_IDENT,     // 識別子
     TK_NUM,       // 数字
@@ -33,6 +34,9 @@ struct Node {
     NodeKind kind;  // ノードの型
     Node *lhs;      // 左辺
     Node *rhs;      // 右辺
+    Node *cond;     // if文で利用
+    Node *then;     // if文で利用
+    Node *els;      // if文で利用
     int val;        // kindがND_NUMの場合に使用
     int offset;     // kindかND_LVARの場合に使用
 };

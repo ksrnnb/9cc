@@ -18,6 +18,9 @@ Node *primary();
 // 解析したstatementを格納する
 Node *code[100];
 
+// 現在みているトークン
+Token *token;
+
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -49,11 +52,22 @@ Node *stmt() {
         node = calloc(1, sizeof(Node));
         node->kind = ND_RETURN;
         node->lhs = expr();
+        expect(";");
+    } else if (consume("if")) {
+        expect("(");
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_IF;
+        node->cond = expr();
+        expect(")");
+        node->then = stmt();
+        if (consume("else")) {
+            node->els = stmt();
+            node->kind = ND_IF_ELSE;
+        }
     } else {
         node = expr();
+        expect(";");
     }
-
-    expect(";");
 
     return node;
 }

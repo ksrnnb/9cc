@@ -3,6 +3,8 @@
 
 #include "9cc.h"
 
+int goto_label = 0;
+
 void error(char *msg) {
     fprintf(stderr, "%s\n", msg);
     exit(EXIT_FAILURE);
@@ -20,12 +22,22 @@ void gen_lval(Node *node) {
 
 void gen(Node *node) {
     switch (node->kind) {
+        case ND_IF:
+            gen(node->cond);
+            printf("    pop rax\n");
+            printf("    cmp rax, 0\n");
+            printf("    je  .Lend%d\n", goto_label);
+            gen(node->then);
+            printf(".Lend%d:\n", goto_label);
+            goto_label++;
+            return;
         case ND_RETURN:
             gen(node->lhs);
             printf("    pop rax\n");
             printf("    mov rsp, rbp\n");
             printf("    pop rbp\n");
             printf("    ret\n");
+            return;
         case ND_NUM:
             printf("    push %d\n", node->val);
             return;
