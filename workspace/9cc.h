@@ -22,6 +22,7 @@ typedef enum {
     ND_IF,       // if
     ND_IF_ELSE,  // if-else
     ND_WHILE,    // while
+    ND_FOR,      // for
 } NodeKind;
 
 typedef enum {
@@ -35,9 +36,11 @@ struct Node {
     NodeKind kind;  // ノードの型
     Node *lhs;      // 左辺
     Node *rhs;      // 右辺
-    Node *cond;     // if文で利用
-    Node *then;     // if文で利用
+    Node *cond;     // if/while/for文で利用
+    Node *then;     // if/while文で利用
     Node *els;      // if文で利用
+    Node *ini;      // for文
+    Node *inc;      // for文
     int val;        // kindがND_NUMの場合に使用
     int offset;     // kindかND_LVARの場合に使用
 };

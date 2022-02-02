@@ -58,4 +58,6 @@ assert 0 "a = 10; if (a == 1) 5; else 0;"
 assert 10 "i = 1; while(i < 10) i = i + 1; return i;"
 assert 1 "i = 1; while(i > 10) i = i + 1; return i;"
 
+assert 90 "j = 0; for (i = 1; i < 10; i = i + 1) j = j + i * 2; return j;"
+
 echo OK
