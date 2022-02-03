@@ -53,6 +53,19 @@ Node *stmt() {
         node->kind = ND_RETURN;
         node->lhs = expr();
         expect(";");
+    } else if (consume("{")) {
+        Node *head = calloc(1, sizeof(Node));
+        head->next = NULL;
+        Node *cur = head;
+
+        while (!consume("}")) {
+            cur->next = stmt();
+            cur = cur->next;
+        }
+
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_BLOCK;
+        node->next = head->next;
     } else if (consume("if")) {
         expect("(");
         node = calloc(1, sizeof(Node));
