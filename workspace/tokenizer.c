@@ -147,11 +147,11 @@ Token *tokenize() {
         }
 
         // 現段階では、記号や数字は識別子に含めない
-        if (*p >= 'a' && *p <= 'z') {
+        if ((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z')) {
             char *pp = p;
             int len = 0;
 
-            while (*pp >= 'a' && *pp <= 'z') {
+            while (is_alnum(*pp)) {
                 pp++;
                 len++;
             }
