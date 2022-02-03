@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "9cc.h"
 
 int goto_label = 0;
+
+// 関数名を入れる
+char name[100] = {0};
 
 void error(char *msg) {
     fprintf(stderr, "%s\n", msg);
@@ -72,6 +76,11 @@ void gen(Node *node) {
                 gen(node->next);
                 node = node->next;
             }
+            return;
+        case ND_FUNC_CALL:
+            strncpy(name, node->str, node->len);
+            printf("    call %s\n", name);
+            return;
         case ND_RETURN:
             gen(node->lhs);
             printf("    pop rax\n");

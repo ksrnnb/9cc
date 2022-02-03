@@ -1,2 +1,7 @@
 .vscode
 .DS_Store
+*.o
+tmp
+tmp.s
+9cc
+test

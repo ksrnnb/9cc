@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "9cc.h"
 
@@ -194,6 +195,9 @@ Node *unary() {
     return primary();
 }
 
+// primary = num
+//         | ident ("(" ")")?
+//         | "(" expr ")"
 Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -207,8 +211,17 @@ Node *primary() {
     }
 
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;
 
+    if (consume("(")) {
+        expect(")");
+        node->kind = ND_FUNC_CALL;
+        node->str = tok->str;
+        node->len = tok->len;
+
+        return node;
+    }
+
+    node->kind = ND_LVAR;
     LVar *lvar = find_lvar(tok);
     if (lvar) {
         node->offset = lvar->offset;
