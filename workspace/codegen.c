@@ -9,6 +9,9 @@ int goto_label = 0;
 // 関数名を入れる
 char name[100] = {0};
 
+// 引数リスト 第6引数まで
+char *args[6] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+
 void error(char *msg) {
     fprintf(stderr, "%s\n", msg);
     exit(EXIT_FAILURE);
@@ -77,10 +80,20 @@ void gen(Node *node) {
                 node = node->next;
             }
             return;
-        case ND_FUNC_CALL:
+        case ND_FUNC_CALL: {
+            // C言語だとcaseの中で変数を宣言できないので、ブロックを使う
+            // https://www.chihayafuru.jp/tech/index.php/archives/2990
+            int argNum = 0;
+            for (Node *n = node->next; n != NULL; n = n->next) {
+                gen(n);
+                printf("    pop %s\n", args[argNum]);
+                argNum++;
+            }
+
             strncpy(name, node->str, node->len);
             printf("    call %s\n", name);
             return;
+        }
         case ND_RETURN:
             gen(node->lhs);
             printf("    pop rax\n");

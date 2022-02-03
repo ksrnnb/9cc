@@ -69,5 +69,6 @@ assert 4 "a = 1; if (a == 1) { b = 3; a = a + b; } return a;"
 
 # function
 assert 0 "foo();"
+assert 0 "bar(4, 6);"
 
 echo OK

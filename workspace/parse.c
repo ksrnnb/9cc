@@ -196,7 +196,7 @@ Node *unary() {
 }
 
 // primary = num
-//         | ident ("(" ")")?
+//         | ident ("(" (expr ("," expr)*)? ")")?
 //         | "(" expr ")"
 Node *primary() {
     if (consume("(")) {
@@ -213,11 +213,28 @@ Node *primary() {
     Node *node = calloc(1, sizeof(Node));
 
     if (consume("(")) {
-        expect(")");
         node->kind = ND_FUNC_CALL;
         node->str = tok->str;
         node->len = tok->len;
+        node->next = NULL;
 
+        if (consume(")")) {
+            // 引数がない関数呼び出し
+            return node;
+        }
+
+        // 引数あり
+        Node *head = calloc(1, sizeof(Node));
+        head->next = NULL;
+        Node *cur = head;
+
+        while (!consume(")")) {
+            cur->next = expr();
+            cur = cur->next;
+            consume(",");
+        }
+
+        node->next = head->next;
         return node;
     }
 
