@@ -23,6 +23,7 @@ typedef enum {
     ND_IF_ELSE,    // if-else
     ND_WHILE,      // while
     ND_FOR,        // for
+    ND_FUNC_DEF,   // 関数定義
     ND_FUNC_CALL,  // 関数を実行
     ND_BLOCK,      // { }
 } NodeKind;
@@ -104,3 +105,6 @@ bool at_eof();
 
 // 変数を名前で検索する
 LVar *find_lvar(Token *tok);
+
+// エラー
+void error(char *fmt);

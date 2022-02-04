@@ -13,9 +13,9 @@ int main(int argc, char **argv) {
     token = tokenize();
     program();
 
+    // プロローグ
     printf(".intel_syntax noprefix\n");
     printf(".globl main\n");
-    printf("main:\n");
 
     // rbp: ベースレジスタ
     // 208 => 8 * 26
@@ -25,13 +25,7 @@ int main(int argc, char **argv) {
 
     for (int i = 0; code[i]; i++) {
         gen(code[i]);
-
-        printf("    pop rax\n");
     }
-
-    printf("    mov rsp, rbp\n");
-    printf("    pop rbp\n");
-    printf("    ret\n");
 
     exit(EXIT_SUCCESS);
 }

@@ -80,6 +80,23 @@ void gen(Node *node) {
                 node = node->next;
             }
             return;
+        case ND_FUNC_DEF:
+            // 関数プロローグ
+            strncpy(name, node->str, node->len);
+            printf("%s:\n", name);
+
+            // rbp: ベースレジスタ
+            // 208 => 8 * 26
+            printf("    push rbp\n");
+            printf("    mov rbp, rsp\n");
+            printf("    sub rsp, 208\n");  // TODO: 引数の数 * 8
+
+            while (node->next != NULL) {
+                gen(node->next);
+                printf("    pop rax\n");
+                node = node->next;
+            }
+            return;
         case ND_FUNC_CALL: {
             // C言語だとcaseの中で変数を宣言できないので、ブロックを使う
             // https://www.chihayafuru.jp/tech/index.php/archives/2990
@@ -110,6 +127,7 @@ void gen(Node *node) {
             // +8して戻す
             printf("    add rsp, 8\n");
             printf(".L.end.%d:\n", goto_label);
+            printf("    push rax\n");
 
             goto_label++;
             return;

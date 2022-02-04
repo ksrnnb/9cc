@@ -6,6 +6,7 @@
 #define IDENT_SIZE 8
 
 void program();
+Node *func();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -41,11 +42,45 @@ Node *new_node_num(int val) {
 void program() {
     int i = 0;
     while (!at_eof()) {
-        code[i++] = stmt();
+        code[i++] = func();
     }
     code[i] = NULL;
 }
 
+// program = ident "(" ")" "{" stmt* "}"
+// program = ident "(" (ident ("," ident)*)? ")" "{" stmt* "}"
+Node *func() {
+    Node *node = new_node(ND_FUNC_DEF, NULL, NULL);
+    Token *tok = consume_ident();
+
+    if (tok == NULL) {
+        error("トップレベルに関数が定義されていません");
+    }
+
+    expect("(");
+    expect(")");
+    expect("{");
+    Node *head = calloc(1, sizeof(Node));
+    head->next = NULL;
+    Node *cur = head;
+
+    while (!consume("}")) {
+        cur->next = stmt();
+        cur = cur->next;
+    }
+
+    node->str = tok->str;
+    node->len = tok->len;
+    node->next = head->next;
+    return node;
+}
+
+// stmt = expr ";"
+//      | "{" stmt* "}"
+//      | "if" "(" expr ")" stmt ("else" stmt)?
+//      | "while" "(" expr ")" stmt
+//      | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//      | return expr ";"
 Node *stmt() {
     Node *node;
 
@@ -113,8 +148,10 @@ Node *stmt() {
     return node;
 }
 
+// expr = assign
 Node *expr() { return assign(); }
 
+// assign     = equality ("=" assign)?
 Node *assign() {
     Node *node = equality();
 
@@ -125,6 +162,7 @@ Node *assign() {
     return node;
 }
 
+// equality = relational ("==" relational | "!=" relational)*
 Node *equality() {
     Node *node = relational();
 
@@ -139,6 +177,7 @@ Node *equality() {
     }
 }
 
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 Node *relational() {
     Node *node = add();
 
@@ -157,6 +196,7 @@ Node *relational() {
     }
 }
 
+// add = mul ("+" mul | "-" mul)*
 Node *add() {
     Node *node = mul();
 
@@ -171,6 +211,7 @@ Node *add() {
     }
 }
 
+// mul = unary ("*" unary | "/" unary)*
 Node *mul() {
     Node *node = unary();
 
@@ -185,6 +226,7 @@ Node *mul() {
     }
 }
 
+// unary = ("+" | "-")? primary
 Node *unary() {
     if (consume("+")) {
         return primary();
