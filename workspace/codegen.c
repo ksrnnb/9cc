@@ -91,7 +91,27 @@ void gen(Node *node) {
             }
 
             strncpy(name, node->str, node->len);
+            // rspの値をチェックして、16の倍数にする（スタックは下に成長するので-8）
+            printf("    mov rax, rsp\n");
+
+            // 15とのAND => 下位4ビットのAND
+            printf("    and rax, 15\n");
+
+            // 下位4ビットが0でない => 16で割り切れていない
+            printf("    jnz .L.call.%d\n", goto_label);
+
+            printf("    mov rax, 0\n");
             printf("    call %s\n", name);
+            printf("    jmp .L.end.%d\n", goto_label);
+            printf(".L.call.%d:\n", goto_label);
+            printf("    sub rsp, 8\n");
+            printf("    mov rax, 0\n");
+            printf("    call %s\n", name);
+            // +8して戻す
+            printf("    add rsp, 8\n");
+            printf(".L.end.%d:\n", goto_label);
+
+            goto_label++;
             return;
         }
         case ND_RETURN:
