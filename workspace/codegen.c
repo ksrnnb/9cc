@@ -15,11 +15,6 @@ char argName[100] = {0};
 // 引数リスト 第6引数まで
 char *args[6] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
-void error(char *msg) {
-    fprintf(stderr, "%s\n", msg);
-    exit(EXIT_FAILURE);
-}
-
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR) {
         error("代入の左辺値が変数ではありません");

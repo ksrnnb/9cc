@@ -113,4 +113,4 @@ bool at_eof();
 LVar *find_lvar(Token *tok);
 
 // エラー
-void error(char *fmt);
+void error(char *fmt, ...);
