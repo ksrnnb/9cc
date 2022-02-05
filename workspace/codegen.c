@@ -8,6 +8,7 @@ int goto_label = 0;
 
 // 関数名を入れる
 char name[100] = {0};
+
 // 引数名
 char argName[100] = {0};
 
@@ -85,6 +86,7 @@ void gen(Node *node) {
         case ND_FUNC_DEF: {
             // 関数プロローグ
             strncpy(name, node->str, node->len);
+            name[node->len] = '\0';
             printf("%s:\n", name);
 
             // rbp: ベースレジスタ
@@ -102,6 +104,7 @@ void gen(Node *node) {
             next = node->argNext;
             while (next != NULL) {
                 strncpy(argName, next->str, next->len);
+                argName[next->len] = '\0';
                 printf("    push %s\n", args[i]);
                 i++;
                 next = next->argNext;
@@ -130,6 +133,7 @@ void gen(Node *node) {
             }
 
             strncpy(name, node->str, node->len);
+            name[node->len] = '\0';
             // rspの値をチェックして、16の倍数にする（スタックは下に成長するので-8）
             printf("    mov rax, rsp\n");
 
