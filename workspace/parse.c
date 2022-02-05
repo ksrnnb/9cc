@@ -16,8 +16,9 @@ Node *mul();
 Node *unary();
 Node *primary();
 
+Type *get_lvar_type();
 void lvar(Token *tok, Node *node);
-void define_variable(Token *tok, Node *node);
+void define_variable(Token *tok, Node *node, Type *type);
 
 // 解析したstatementを格納する
 Node *code[100];
@@ -79,7 +80,8 @@ Node *func() {
             argCur->argNext = argNext;
             argCur = argCur->argNext;
 
-            define_variable(argTok, argNext);
+            Type *type = get_lvar_type();
+            define_variable(argTok, argNext, type);
 
             consume(",");
             consume("int");
@@ -114,7 +116,7 @@ Node *func() {
 //      | "while" "(" expr ")" stmt
 //      | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 //      | "return" expr ";"
-//      | "int" ident ";"
+//      | "int" "*"* ident ";"
 Node *stmt() {
     Node *node;
 
@@ -175,9 +177,10 @@ Node *stmt() {
 
         node->then = stmt();
     } else if (consume("int")) {
+        Type *type = get_lvar_type();
         Token *tok = consume_ident();
         node = calloc(1, sizeof(Node));
-        define_variable(tok, node);
+        define_variable(tok, node, type);
         expect(";");
         return node;
     } else {
@@ -331,9 +334,23 @@ Node *primary() {
     return node;
 }
 
-void dispatch_define_lvar(Token *tok, Node *node);
+Type *get_lvar_type() {
+    Type *type = calloc(1, sizeof(Type));
+    type->ty = INT;
+    type->ptr_to = NULL;
+    while (consume("*")) {
+        Type *next = calloc(1, sizeof(Type));
+        next->ty = PTR;
+        next->ptr_to = type;
+        type = next;
+    }
 
-void define_variable(Token *tok, Node *node) {
+    return type;
+}
+
+void dispatch_define_lvar(Token *tok, Node *node, Type *type);
+
+void define_variable(Token *tok, Node *node, Type *type) {
     LVar *lvar = find_lvar(tok);
     if (lvar != NULL) {
         char name[100] = {0};
@@ -342,7 +359,7 @@ void define_variable(Token *tok, Node *node) {
         return;
     }
 
-    dispatch_define_lvar(tok, node);
+    dispatch_define_lvar(tok, node, type);
 }
 
 void lvar(Token *tok, Node *node) {
@@ -358,12 +375,13 @@ void lvar(Token *tok, Node *node) {
     node->offset = lvar->offset;
 }
 
-void dispatch_define_lvar(Token *tok, Node *node) {
+void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
     LVar *lvar = calloc(1, sizeof(LVar));
 
     lvar->next = locals[cur_func];
     lvar->name = tok->str;
     lvar->len = tok->len;
+    lvar->type = type;
 
     if (locals[cur_func] == NULL) {
         lvar->offset = VAR_SIZE;

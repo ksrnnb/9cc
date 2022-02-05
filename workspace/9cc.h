@@ -8,6 +8,8 @@ typedef struct Token Token;
 
 typedef struct LVar LVar;
 
+typedef struct Type Type;
+
 typedef enum {
     ND_ADD,        // +
     ND_SUB,        // -
@@ -39,6 +41,11 @@ typedef enum {
     TK_EOF,       // 終端
 } TokenKind;
 
+struct Type {
+    enum { INT, PTR } ty;
+    struct Type *ptr_to;
+};
+
 struct Node {
     NodeKind kind;  // ノードの型
     Node *lhs;      // 左辺
@@ -59,6 +66,7 @@ struct Node {
 struct Token {
     TokenKind kind;
     Token *next;
+    Type *type;
     int val;
     char *str;
     int len;
@@ -67,6 +75,7 @@ struct Token {
 // ローカル変数の型
 struct LVar {
     LVar *next;
+    Type *type;
     char *name;
     int len;
     int offset;  // RBPからのオフセット

@@ -21,6 +21,15 @@ assert() {
     fi
 }
 
+# pointer type
+assert 3 "int main() {
+    int x;
+    int *y;
+    y = &x;
+    *y = 3;
+    return x;
+}"
+
 # int type
 assert 3 "int main() {
     int x;
