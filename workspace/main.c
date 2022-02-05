@@ -3,6 +3,9 @@
 
 #include "9cc.h"
 
+int cur_func;
+LVar *locals[100];
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "%s: argument is invalid\n", argv[0]);
@@ -21,9 +24,10 @@ int main(int argc, char **argv) {
     // 208 => 8 * 26
     printf("    push rbp\n");
     printf("    mov rbp, rsp\n");
-    // printf("    sub rsp, 208\n");
 
+    cur_func = 0;
     for (int i = 0; code[i]; i++) {
+        cur_func++;
         gen(code[i]);
     }
 

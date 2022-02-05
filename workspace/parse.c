@@ -23,6 +23,10 @@ Node *code[100];
 // 現在みているトークン
 Token *token;
 
+// ローカル変数用
+LVar *locals[100];
+int cur_func = 0;
+
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -49,6 +53,7 @@ void program() {
 
 // program = ident "(" (ident ("," ident)*)? ")" "{" stmt* "}"
 Node *func() {
+    cur_func++;
     Node *node = new_node(ND_FUNC_DEF, NULL, NULL);
     Token *tok = consume_ident();
 
@@ -318,10 +323,16 @@ void register_lvar(Token *tok, Node *node) {
     }
 
     lvar = calloc(1, sizeof(LVar));
-    lvar->next = locals;
+    lvar->next = locals[cur_func];
     lvar->name = tok->str;
     lvar->len = tok->len;
-    lvar->offset = locals->offset + VAR_SIZE;
+
+    if (locals[cur_func] == NULL) {
+        lvar->offset = VAR_SIZE;
+    } else {
+        lvar->offset = locals[cur_func]->offset + VAR_SIZE;
+    }
+
     node->offset = lvar->offset;
-    locals = lvar;
+    locals[cur_func] = lvar;
 }

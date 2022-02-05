@@ -52,11 +52,14 @@ func(x, y, z) {
 }
 "
 
+# using local variable
 assert 120 "main() {
-    return fractal(5);
+    a = 5;
+    return fractal(a);
 }
 
 fractal(n) {
+    b = 3;
     if (n <= 1) {
         return 1;
     }

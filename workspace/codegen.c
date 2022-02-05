@@ -107,6 +107,11 @@ void gen(Node *node) {
                 next = next->argNext;
             }
 
+            if (locals[cur_func]) {
+                int offset = locals[cur_func][0].offset - argCount * VAR_SIZE;
+                printf("    sub rsp, %d\n", offset);
+            }
+
             while (node->next != NULL) {
                 gen(node->next);
                 // printf("    pop rax\n");

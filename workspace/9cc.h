@@ -71,7 +71,8 @@ struct LVar {
 };
 
 // ローカル変数
-LVar *locals;
+extern LVar *locals[];
+extern int cur_func;
 
 // 入力プログラム
 extern char *user_input;

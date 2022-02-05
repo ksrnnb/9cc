@@ -13,11 +13,8 @@ char *user_input;
 // 現在みているトークン
 Token *token;
 
-// ローカル変数
-LVar *locals;
-
-// ローカル変数の初期化
-void initialize_local_variable() { locals = calloc(1, sizeof(LVar)); }
+LVar *locals[100];
+int cur_func;
 
 // エラー箇所を出力
 void error_at(char *loc, char *fmt, ...) {
@@ -107,7 +104,6 @@ Token *tokenize() {
     Token head;
     head.next = NULL;
     Token *cur = &head;
-    initialize_local_variable();
 
     while (*p) {
         if (isspace(*p)) {
@@ -193,7 +189,7 @@ Token *tokenize() {
 
 // 変数を名前で検索する
 LVar *find_lvar(Token *tok) {
-    for (LVar *var = locals; var; var = var->next) {
+    for (LVar *var = locals[cur_func]; var; var = var->next) {
         // memcmpは完全一致なら0を返す
         if (var->len == tok->len &&
             memcmp(tok->str, var->name, var->len) == 0) {
