@@ -53,8 +53,9 @@ void program() {
     code[i] = NULL;
 }
 
-// program = ident "(" (ident ("," ident)*)? ")" "{" stmt* "}"
+// program = "int" ident "(" ("int" ident ("," "int" ident)*)? ")" "{" stmt* "}"
 Node *func() {
+    expect("int");
     cur_func++;
     Node *node = new_node(ND_FUNC_DEF, NULL, NULL);
     Token *tok = consume_ident();
@@ -65,25 +66,28 @@ Node *func() {
 
     expect("(");
     // 引数
-    Token *argTok = consume_ident();
-    Node *argHead = calloc(1, sizeof(Node));
-    argHead->next = NULL;
-    Node *argCur = argHead;
+    if (consume("int")) {
+        Token *argTok = consume_ident();
+        Node *argHead = calloc(1, sizeof(Node));
+        argHead->next = NULL;
+        Node *argCur = argHead;
 
-    while (argTok != NULL) {
-        Node *argNext = calloc(1, sizeof(Node));
-        argNext->str = argTok->str;
-        argNext->len = argTok->len;
-        argCur->argNext = argNext;
-        argCur = argCur->argNext;
+        while (argTok != NULL) {
+            Node *argNext = calloc(1, sizeof(Node));
+            argNext->str = argTok->str;
+            argNext->len = argTok->len;
+            argCur->argNext = argNext;
+            argCur = argCur->argNext;
 
-        lvar(argTok, argNext);
+            define_variable(argTok, argNext);
 
-        consume(",");
-        argTok = consume_ident();
+            consume(",");
+            consume("int");
+            argTok = consume_ident();
+        }
+
+        node->argNext = argHead->argNext;
     }
-
-    node->argNext = argHead->argNext;
 
     expect(")");
 
