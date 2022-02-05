@@ -28,6 +28,8 @@ typedef enum {
     ND_FUNC_DEF,   // 関数定義
     ND_FUNC_CALL,  // 関数を実行
     ND_BLOCK,      // { }
+    ND_ADDR,       // 単項&
+    ND_DEREF,      // 単項*
 } NodeKind;
 
 typedef enum {

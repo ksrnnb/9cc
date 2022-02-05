@@ -21,6 +21,12 @@ assert() {
     fi
 }
 
+assert 3 "main() {
+    x = 3;
+    y = &x;
+    return *y;
+}"
+
 assert 0 "main() {
     return 0;
 }"
