@@ -34,17 +34,35 @@ func() {
 }
 "
 
-# assert 120 "main() {
-#     return fractal(5);
-# }
+assert 3 "main() {
+    return func(1, 2);
+}
 
-# fractal(n) {
-#     if (n <= 1) {
-#         return 1;
-#     }
+func(x, y) {
+    return x + y;
+}
+"
 
-#     return n * fractal(n - 1);
-# }"
+assert 5 "main() {
+    return func(1, 2, 3);
+}
+
+func(x, y, z) {
+    return y + z;
+}
+"
+
+assert 120 "main() {
+    return fractal(5);
+}
+
+fractal(n) {
+    if (n <= 1) {
+        return 1;
+    }
+
+    return n * fractal(n - 1);
+}"
 
 # assert 42 "42;"
 

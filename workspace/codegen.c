@@ -8,6 +8,8 @@ int goto_label = 0;
 
 // 関数名を入れる
 char name[100] = {0};
+// 引数名
+char argName[100] = {0};
 
 // 引数リスト 第6引数まで
 char *args[6] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -80,23 +82,38 @@ void gen(Node *node) {
                 node = node->next;
             }
             return;
-        case ND_FUNC_DEF:
+        case ND_FUNC_DEF: {
             // 関数プロローグ
             strncpy(name, node->str, node->len);
             printf("%s:\n", name);
 
             // rbp: ベースレジスタ
-            // 208 => 8 * 26
             printf("    push rbp\n");
             printf("    mov rbp, rsp\n");
-            printf("    sub rsp, 208\n");  // TODO: 引数の数 * 8
+
+            int argCount = 0;
+            Node *next = node->argNext;
+            while (next != NULL) {
+                argCount++;
+                next = next->argNext;
+            }
+
+            int i = 0;
+            next = node->argNext;
+            while (next != NULL) {
+                strncpy(argName, next->str, next->len);
+                printf("    push %s\n", args[i]);
+                i++;
+                next = next->argNext;
+            }
 
             while (node->next != NULL) {
                 gen(node->next);
-                printf("    pop rax\n");
+                // printf("    pop rax\n");
                 node = node->next;
             }
             return;
+        }
         case ND_FUNC_CALL: {
             // C言語だとcaseの中で変数を宣言できないので、ブロックを使う
             // https://www.chihayafuru.jp/tech/index.php/archives/2990

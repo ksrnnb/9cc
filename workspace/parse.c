@@ -1,9 +1,8 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "9cc.h"
-
-#define IDENT_SIZE 8
 
 void program();
 Node *func();
@@ -16,6 +15,7 @@ Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
+void register_lvar(Token *tok, Node *node);
 
 // 解析したstatementを格納する
 Node *code[100];
@@ -47,7 +47,6 @@ void program() {
     code[i] = NULL;
 }
 
-// program = ident "(" ")" "{" stmt* "}"
 // program = ident "(" (ident ("," ident)*)? ")" "{" stmt* "}"
 Node *func() {
     Node *node = new_node(ND_FUNC_DEF, NULL, NULL);
@@ -58,8 +57,31 @@ Node *func() {
     }
 
     expect("(");
+    // 引数
+    Token *argTok = consume_ident();
+    Node *argHead = calloc(1, sizeof(Node));
+    argHead->next = NULL;
+    Node *argCur = argHead;
+
+    while (argTok != NULL) {
+        Node *argNext = calloc(1, sizeof(Node));
+        argNext->str = argTok->str;
+        argNext->len = argTok->len;
+        argCur->argNext = argNext;
+        argCur = argCur->argNext;
+
+        register_lvar(argTok, argNext);
+
+        consume(",");
+        argTok = consume_ident();
+    }
+
+    node->argNext = argHead->argNext;
+
     expect(")");
+
     expect("{");
+    // 関数の中身
     Node *head = calloc(1, sizeof(Node));
     head->next = NULL;
     Node *cur = head;
@@ -254,6 +276,7 @@ Node *primary() {
 
     Node *node = calloc(1, sizeof(Node));
 
+    // 関数呼び出し
     if (consume("(")) {
         node->kind = ND_FUNC_CALL;
         node->str = tok->str;
@@ -280,20 +303,25 @@ Node *primary() {
         return node;
     }
 
+    // いずれにも当てはまらない場合は変数定義
+    register_lvar(tok, node);
+
+    return node;
+}
+
+void register_lvar(Token *tok, Node *node) {
     node->kind = ND_LVAR;
     LVar *lvar = find_lvar(tok);
     if (lvar) {
         node->offset = lvar->offset;
-        return node;
+        return;
     }
 
     lvar = calloc(1, sizeof(LVar));
     lvar->next = locals;
     lvar->name = tok->str;
     lvar->len = tok->len;
-    lvar->offset = locals->offset + IDENT_SIZE;
+    lvar->offset = locals->offset + VAR_SIZE;
     node->offset = lvar->offset;
     locals = lvar;
-
-    return node;
 }

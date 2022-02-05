@@ -1,5 +1,7 @@
 #include <stdbool.h>
 
+#define VAR_SIZE 8
+
 typedef struct Node Node;
 
 typedef struct Token Token;
@@ -45,6 +47,7 @@ struct Node {
     Node *ini;      // for文
     Node *inc;      // for文
     Node *next;     // ブロック
+    Node *argNext;  // 引数
     int val;        // kindがND_NUMの場合に使用
     int offset;     // kindかND_LVARの場合に使用
     char *str;      // 文字列（関数名）
