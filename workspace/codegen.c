@@ -17,7 +17,7 @@ char *args[6] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen_lval(Node *node) {
     if (node->kind == ND_DEREF) {
-        // TODO: 右辺値としてコンパイル？
+        gen(node->lhs);
         return;
     }
 
