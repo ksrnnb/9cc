@@ -245,7 +245,14 @@ Node *add() {
 
     for (;;) {
         if (consume("+")) {
-            node = new_node(ND_ADD, node, mul());
+            if (node->type != NULL && node->type->ty == PTR) {
+                int n = node->type->ptr_to->ty == INT ? 4 : 8;
+                // *p + 3 => 3 * 4 = 12byteだけ進める
+                Node *newNode = new_node(ND_MUL, mul(), new_node_num(n));
+                node = new_node(ND_ADD, node, newNode);
+            } else {
+                node = new_node(ND_ADD, node, mul());
+            }
         } else if (consume("-")) {
             node = new_node(ND_SUB, node, mul());
         } else {
@@ -306,7 +313,7 @@ Node *primary() {
         node->kind = ND_FUNC_CALL;
         node->str = tok->str;
         node->len = tok->len;
-        node->next = NULL;
+        node->argNext = NULL;
 
         if (consume(")")) {
             // 引数がない関数呼び出し
@@ -315,16 +322,16 @@ Node *primary() {
 
         // 引数あり
         Node *head = calloc(1, sizeof(Node));
-        head->next = NULL;
+        head->argNext = NULL;
         Node *cur = head;
 
         while (!consume(")")) {
-            cur->next = expr();
-            cur = cur->next;
+            cur->argNext = expr();
+            cur = cur->argNext;
             consume(",");
         }
 
-        node->next = head->next;
+        node->argNext = head->argNext;
         return node;
     }
 
@@ -373,6 +380,7 @@ void lvar(Token *tok, Node *node) {
 
     node->kind = ND_LVAR;
     node->offset = lvar->offset;
+    node->type = lvar->type;
 }
 
 void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
@@ -391,5 +399,6 @@ void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
 
     node->kind = ND_LVAR;
     node->offset = lvar->offset;
+    node->type = type;
     locals[cur_func] = lvar;
 }

@@ -57,6 +57,7 @@ struct Node {
     Node *inc;      // for文
     Node *next;     // ブロック
     Node *argNext;  // 引数
+    Type *type;     // ND_LVAR
     int val;        // kindがND_NUMの場合に使用
     int offset;     // kindかND_LVARの場合に使用
     char *str;      // 文字列（関数名）

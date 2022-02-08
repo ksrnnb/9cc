@@ -87,6 +87,7 @@ void gen(Node *node) {
             // 関数プロローグ
             strncpy(name, node->str, node->len);
             name[node->len] = '\0';
+            printf(".global %s\n", name);
             printf("%s:\n", name);
 
             // rbp: ベースレジスタ
@@ -117,7 +118,6 @@ void gen(Node *node) {
 
             while (node->next != NULL) {
                 gen(node->next);
-                // printf("    pop rax\n");
                 node = node->next;
             }
             return;
@@ -126,14 +126,17 @@ void gen(Node *node) {
             // C言語だとcaseの中で変数を宣言できないので、ブロックを使う
             // https://www.chihayafuru.jp/tech/index.php/archives/2990
             int argNum = 0;
-            for (Node *n = node->next; n != NULL; n = n->next) {
-                gen(n);
-                printf("    pop %s\n", args[argNum]);
-                argNum++;
-            }
 
             strncpy(name, node->str, node->len);
             name[node->len] = '\0';
+
+            while (node->argNext != NULL) {
+                gen(node->argNext);
+                printf("    pop %s\n", args[argNum]);
+                argNum++;
+                node = node->argNext;
+            }
+
             // rspの値をチェックして、16の倍数にする（スタックは下に成長するので-8）
             printf("    mov rax, rsp\n");
 
@@ -166,6 +169,7 @@ void gen(Node *node) {
             printf("    ret\n");
             return;
         case ND_NUM:
+            // printf("NUM: %d\n\n", node->val);
             printf("    push %d\n", node->val);
             return;
         case ND_LVAR:
