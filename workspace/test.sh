@@ -21,6 +21,12 @@ assert() {
     fi
 }
 
+# array
+assert 0 "int main() {
+    int x[10];
+    return 0;
+}"
+
 # sizeof
 assert 4 "int main() {
     int x;

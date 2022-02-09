@@ -401,6 +401,24 @@ void lvar(Token *tok, Node *node) {
 }
 
 void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
+    int size = type->ty == PTR ? PTR_SIZE : INT_SIZE;
+    // 配列の場合
+    while (consume("[")) {
+        Type *t = calloc(1, sizeof(Type));
+        t->ty = ARRAY;
+        t->ptr_to = type;
+        t->array_size = expect_number();
+        size *= t->array_size;
+        type = t;
+
+        expect("]");
+    }
+
+    // 8の倍数にする
+    while (size % 8 != 0) {
+        size += 4;
+    }
+
     LVar *lvar = calloc(1, sizeof(LVar));
 
     lvar->next = locals[cur_func];
@@ -409,9 +427,9 @@ void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
     lvar->type = type;
 
     if (locals[cur_func] == NULL) {
-        lvar->offset = VAR_SIZE;
+        lvar->offset = size;
     } else {
-        lvar->offset = locals[cur_func]->offset + VAR_SIZE;
+        lvar->offset = locals[cur_func]->offset + size;
     }
 
     node->kind = ND_LVAR;
