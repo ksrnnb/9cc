@@ -127,3 +127,6 @@ LVar *find_lvar(Token *tok);
 
 // エラー
 void error(char *fmt, ...);
+
+// lhs, rhsからtypeを再起的にみていく
+Type *get_type(Node *node);
