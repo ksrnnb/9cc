@@ -283,12 +283,37 @@ Node *mul() {
     }
 }
 
+// 再起的にみていって、sizeofで必要となるタイプを取得する
+Type *get_type(Node *node) {
+    if (node == NULL) {
+        return NULL;
+    }
+
+    if (node->type) {
+        return node->type;
+    }
+
+    Type *t = get_type(node->lhs);
+    if (t == NULL) {
+        t = get_type(node->rhs);
+    }
+
+    if (t != NULL && node->kind == ND_DEREF) {
+        t = t->ptr_to;
+        if (t == NULL) {
+            error("invalid dereference");
+        }
+    }
+
+    return t;
+}
+
 // unary = "sizeof" unary |"+"? primary | "-"? primary | "*"? unary | "&"? unary
 Node *unary() {
     if (consume("sizeof")) {
         Node *node = unary();
-
-        if (node->type != NULL && node->type->ty == PTR) {
+        Type *t = get_type(node);
+        if (t != NULL && t->ty == PTR) {
             return new_node_num(PTR_SIZE);
         }
 
