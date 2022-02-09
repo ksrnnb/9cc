@@ -1,6 +1,8 @@
 #include <stdbool.h>
 
 #define VAR_SIZE 8
+#define INT_SIZE 4
+#define PTR_SIZE 8
 
 typedef struct Node Node;
 

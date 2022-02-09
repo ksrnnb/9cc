@@ -22,6 +22,16 @@ assert() {
 }
 
 # pointer add/sub
+assert 2 "int main() {
+    int *p;
+    alloc4(&p, 1, 2, 4, 8);
+    int *q;
+    q = p + 3;
+    int *r;
+    r = q - 2;
+    return *r;
+}"
+
 assert 4 "int main() {
     int *p;
     alloc4(&p, 1, 2, 4, 8);

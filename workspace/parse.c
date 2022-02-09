@@ -246,7 +246,7 @@ Node *add() {
     for (;;) {
         if (consume("+")) {
             if (node->type != NULL && node->type->ty == PTR) {
-                int n = node->type->ptr_to->ty == INT ? 4 : 8;
+                int n = node->type->ptr_to->ty == INT ? INT_SIZE : PTR_SIZE;
                 // *p + 3 => 3 * 4 = 12byteだけ進める
                 Node *newNode = new_node(ND_MUL, mul(), new_node_num(n));
                 node = new_node(ND_ADD, node, newNode);
@@ -254,7 +254,14 @@ Node *add() {
                 node = new_node(ND_ADD, node, mul());
             }
         } else if (consume("-")) {
-            node = new_node(ND_SUB, node, mul());
+            if (node->type != NULL && node->type->ty == PTR) {
+                int n = node->type->ptr_to->ty == INT ? INT_SIZE : PTR_SIZE;
+                Node *newNode = new_node(ND_MUL, mul(), new_node_num(n));
+                node = new_node(ND_SUB, node, newNode);
+            } else {
+                node = new_node(ND_SUB, node, mul());
+            }
+
         } else {
             return node;
         }
