@@ -17,7 +17,7 @@ Node *unary();
 Node *primary();
 
 Type *get_lvar_type();
-void lvar(Token *tok, Node *node);
+Node *lvar(Token *tok, Node *node);
 void define_variable(Token *tok, Node *node, Type *type);
 
 // 解析したstatementを格納する
@@ -378,7 +378,7 @@ Node *primary() {
     }
 
     // いずれにも当てはまらない場合は変数の値を取得
-    lvar(tok, node);
+    node = lvar(tok, node);
 
     return node;
 }
@@ -411,18 +411,32 @@ void define_variable(Token *tok, Node *node, Type *type) {
     dispatch_define_lvar(tok, node, type);
 }
 
-void lvar(Token *tok, Node *node) {
+Node *lvar(Token *tok, Node *node) {
     LVar *lvar = find_lvar(tok);
     if (lvar == NULL) {
         char name[100] = {0};
         strncpy(name, tok->str, tok->len);
         error("'%s'が定義されていません", name);
-        return;
+        return NULL;
     }
 
     node->kind = ND_LVAR;
     node->offset = lvar->offset;
     node->type = lvar->type;
+
+    // a[3] => *(a+3)
+    // a[expr()] = *(a+expr())
+    // TODO: 多重配列に対応
+    if (consume("[")) {
+        Node *add = new_node(ND_ADD, node, expr());
+        Node *n = calloc(1, sizeof(Node));
+        n->kind = ND_DEREF;
+        n->lhs = add;
+        node = n;
+        expect("]");
+    }
+
+    return node;
 }
 
 void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
