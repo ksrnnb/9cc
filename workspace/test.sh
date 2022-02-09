@@ -21,6 +21,41 @@ assert() {
     fi
 }
 
+# sizeof
+assert 4 "int main() {
+    int x;
+    return sizeof(x);
+}"
+
+assert 8 "int main() {
+    int *y;
+    return sizeof(y);
+}"
+
+assert 4 "int main() {
+    int x;
+    return sizeof(x + 3);
+}"
+
+# TODO: 実装
+# assert 8 "int main() {
+#     int *y;
+#     return sizeof(y + 3);
+# }"
+
+assert 4 "int main() {
+    int *y;
+    return sizeof(*y);
+}"
+
+assert 4 "int main() {
+    return sizeof(1);
+}"
+
+assert 4 "int main() {
+    return sizeof(sizeof(1));
+}"
+
 # pointer add/sub
 assert 2 "int main() {
     int *p;

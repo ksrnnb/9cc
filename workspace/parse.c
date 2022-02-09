@@ -283,8 +283,18 @@ Node *mul() {
     }
 }
 
-// unary = "+"? primary | "-"? primary | "*"? unary | "&"? unary
+// unary = "sizeof" unary |"+"? primary | "-"? primary | "*"? unary | "&"? unary
 Node *unary() {
+    if (consume("sizeof")) {
+        Node *node = unary();
+
+        if (node->type != NULL && node->type->ty == PTR) {
+            return new_node_num(PTR_SIZE);
+        }
+
+        return new_node_num(INT_SIZE);
+    }
+
     if (consume("+")) {
         return primary();
     } else if (consume("-")) {
