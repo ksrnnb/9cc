@@ -112,7 +112,7 @@ void gen(Node *node) {
             }
 
             if (locals[cur_func]) {
-                int offset = locals[cur_func][0].offset - argCount * VAR_SIZE;
+                int offset = locals[cur_func]->offset - argCount * VAR_SIZE;
                 printf("    sub rsp, %d\n", offset);
             }
 
