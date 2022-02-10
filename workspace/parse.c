@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -443,13 +444,41 @@ void define_variable(Token *tok, Node *node, Type *type) {
     dispatch_define_lvar(tok, node, type);
 }
 
-Node *lvar(Token *tok, Node *node) {
-    LVar *lvar = find_lvar(tok);
-    if (lvar == NULL) {
+Node *gvar(Token *tok, Node *node) {
+    GVar *gvar = find_gvar(tok);
+    if (gvar == NULL) {
         char name[100] = {0};
         strncpy(name, tok->str, tok->len);
         error("'%s'が定義されていません", name);
         return NULL;
+    }
+
+    node->kind = ND_GVAR;
+    node->offset = gvar->size;
+    node->type = gvar->type;
+    node->str = tok->str;
+    node->len = tok->len;
+    node->is_define = false;
+
+    // a[3] => *(a+3)
+    // a[expr()] = *(a+expr())
+    // TODO: 多重配列に対応
+    if (consume("[")) {
+        Node *add = new_node(ND_ADD, node, expr());
+        Node *n = calloc(1, sizeof(Node));
+        n->kind = ND_DEREF;
+        n->lhs = add;
+        node = n;
+        expect("]");
+    }
+
+    return node;
+}
+
+Node *lvar(Token *tok, Node *node) {
+    LVar *lvar = find_lvar(tok);
+    if (lvar == NULL) {
+        return gvar(tok, node);
     }
 
     node->kind = ND_LVAR;
@@ -534,12 +563,14 @@ Node *dispatch_define_gvar(Token *tok, Node *node, Type *type) {
     gvar->name = tok->str;
     gvar->len = tok->len;
     gvar->type = type;
+    gvar->size = size;
     globals = gvar;
 
     node->type = type;
     node->offset = size;
     node->str = tok->str;
     node->len = tok->len;
+    node->is_define = true;
 
     return node;
 }

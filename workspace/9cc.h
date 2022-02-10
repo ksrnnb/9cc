@@ -52,21 +52,22 @@ struct Type {
 };
 
 struct Node {
-    NodeKind kind;  // ノードの型
-    Node *lhs;      // 左辺
-    Node *rhs;      // 右辺
-    Node *cond;     // if/while/for文で利用
-    Node *then;     // if/while文で利用
-    Node *els;      // if文で利用
-    Node *ini;      // for文
-    Node *inc;      // for文
-    Node *next;     // ブロック
-    Node *argNext;  // 引数
-    Type *type;     // ND_LVAR
-    int val;        // kindがND_NUMの場合に使用
-    int offset;     // kindかND_LVARの場合に使用
-    char *str;      // 文字列（関数名）
-    int len;        // 文字列の長さ
+    NodeKind kind;   // ノードの型
+    Node *lhs;       // 左辺
+    Node *rhs;       // 右辺
+    Node *cond;      // if/while/for文で利用
+    Node *then;      // if/while文で利用
+    Node *els;       // if文で利用
+    Node *ini;       // for文
+    Node *inc;       // for文
+    Node *next;      // ブロック
+    Node *argNext;   // 引数
+    Type *type;      // ND_LVAR
+    int val;         // kindがND_NUMの場合に使用
+    int offset;      // kindかND_LVARの場合に使用
+    char *str;       // 文字列（関数名）
+    int len;         // 文字列の長さ
+    bool is_define;  // 定義式かどうか
 };
 
 struct Token {
@@ -93,6 +94,7 @@ struct GVar {
     Type *type;
     char *name;
     int len;
+    int size;
 };
 
 // ローカル変数

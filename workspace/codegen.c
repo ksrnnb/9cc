@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,13 +22,24 @@ void gen_lval(Node *node) {
         return;
     }
 
-    if (node->kind != ND_LVAR) {
-        error("代入の左辺値が変数ではありません");
+    if (node->kind == ND_LVAR) {
+        printf("    mov rax, rbp\n");
+        printf("    sub rax, %d\n", node->offset);
+        printf("    push rax\n");
+        return;
+    } else if (node->kind == ND_GVAR) {
+        strncpy(name, node->str, node->len);
+        name[node->len] = '\0';
+        Type *t = get_type(node);
+        if (t->ty == INT) {
+            // TODO: INT以外の実装
+            printf("    push offset %s\n", name);
+        }
+
+        return;
     }
 
-    printf("    mov rax, rbp\n");
-    printf("    sub rax, %d\n", node->offset);
-    printf("    push rax\n");
+    error("代入の左辺値が変数ではありません");
 }
 
 void gen(Node *node) {
@@ -172,7 +184,7 @@ void gen(Node *node) {
             // printf("NUM: %d\n\n", node->val);
             printf("    push %d\n", node->val);
             return;
-        case ND_LVAR:
+        case ND_LVAR: {
             gen_lval(node);
             Type *t = get_type(node);
             if (t != NULL && t->ty == ARRAY) {
@@ -183,13 +195,27 @@ void gen(Node *node) {
             printf("    mov rax, [rax]\n");
             printf("    push rax\n");
             return;
-        case ND_GVAR:
-            strncpy(name, node->str, node->len);
-            name[node->len] = '\0';
+        }
+        case ND_GVAR: {
+            if (node->is_define) {
+                strncpy(name, node->str, node->len);
+                name[node->len] = '\0';
+                printf("%s:\n", name);
+                printf("    .zero %d\n", node->offset);
+                return;
+            }
 
-            printf("%s:\n", name);
-            printf("    .zero %d\n", node->offset);
+            gen_lval(node);
+            Type *t = get_type(node);
+            if (t != NULL && t->ty == ARRAY) {
+                return;
+            }
+
+            printf("    pop rax\n");
+            printf("    mov rax, [rax]\n");
+            printf("    push rax\n");
             return;
+        }
         case ND_ASSIGN:
             gen_lval(node->lhs);
             gen(node->rhs);

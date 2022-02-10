@@ -20,10 +20,24 @@ int main(int argc, char **argv) {
     // プロローグ
     printf(".intel_syntax noprefix\n");
 
+    // 静的変数のうちプログラム開始時に0で初期化されるもの
+    // => .bssのセクションが終わるまでグローバル変数
+    printf(".bss\n");
+
+    for (int i = 0; code[i]; i++) {
+        if (code[i]->kind == ND_GVAR) {
+            gen(code[i]);
+        }
+    }
+
+    // .textの下から機械語にされる実行文
+    printf(".text\n");
     cur_func = 0;
     for (int i = 0; code[i]; i++) {
-        cur_func++;
-        gen(code[i]);
+        if (code[i]->kind == ND_FUNC_DEF) {
+            cur_func++;
+            gen(code[i]);
+        }
     }
 
     exit(EXIT_SUCCESS);
