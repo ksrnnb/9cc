@@ -9,6 +9,7 @@ typedef struct Node Node;
 typedef struct Token Token;
 
 typedef struct LVar LVar;
+typedef struct GVar GVar;
 
 typedef struct Type Type;
 
@@ -23,6 +24,7 @@ typedef enum {
     ND_LTE,        // <=
     ND_ASSIGN,     // =
     ND_LVAR,       // ローカル変数
+    ND_GVAR,       // グローバル変数
     ND_NUM,        // 整数
     ND_RETURN,     // return
     ND_IF,         // if
@@ -85,8 +87,20 @@ struct LVar {
     int offset;  // RBPからのオフセット
 };
 
+// グローバル変数の型
+struct GVar {
+    GVar *next;
+    Type *type;
+    char *name;
+    int len;
+};
+
 // ローカル変数
 extern LVar *locals[];
+
+// グローバル変数
+extern GVar *globals;
+
 extern int cur_func;
 
 // 入力プログラム
@@ -124,6 +138,9 @@ bool at_eof();
 
 // 変数を名前で検索する
 LVar *find_lvar(Token *tok);
+
+// グローバル変数を名前で検索する
+GVar *find_gvar(Token *tok);
 
 // エラー
 void error(char *fmt, ...);

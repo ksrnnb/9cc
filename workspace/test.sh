@@ -21,6 +21,15 @@ assert() {
     fi
 }
 
+# global variables
+assert 1 "
+int a;
+int b[10];
+int main() {
+    return 1;
+}
+"
+
 # array
 assert 3 "int main() {
     int a[2];

@@ -183,6 +183,13 @@ void gen(Node *node) {
             printf("    mov rax, [rax]\n");
             printf("    push rax\n");
             return;
+        case ND_GVAR:
+            strncpy(name, node->str, node->len);
+            name[node->len] = '\0';
+
+            printf("%s:\n", name);
+            printf("    .zero %d\n", node->offset);
+            return;
         case ND_ASSIGN:
             gen_lval(node->lhs);
             gen(node->rhs);

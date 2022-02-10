@@ -211,3 +211,16 @@ LVar *find_lvar(Token *tok) {
 
     return NULL;
 }
+
+// 変数を名前で検索する
+GVar *find_gvar(Token *tok) {
+    for (GVar *var = globals; var; var = var->next) {
+        // memcmpは完全一致なら0を返す
+        if (var->len == tok->len &&
+            memcmp(tok->str, var->name, var->len) == 0) {
+            return var;
+        }
+    }
+
+    return NULL;
+}

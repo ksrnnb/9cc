@@ -16,9 +16,12 @@ Node *mul();
 Node *unary();
 Node *primary();
 
-Type *get_lvar_type();
+Node *function_node(Token *tok);
+Type *get_var_type();
 Node *lvar(Token *tok, Node *node);
 void define_variable(Token *tok, Node *node, Type *type);
+Node *define_gvar(Token *tok, Type *type);
+Node *dispatch_define_gvar(Token *tok, Node *node, Type *type);
 
 // 解析したstatementを格納する
 Node *code[100];
@@ -54,18 +57,47 @@ void program() {
     code[i] = NULL;
 }
 
-// program = "int" ident "(" ("int" ident ("," "int" ident)*)? ")" "{" stmt* "}"
+// program = "int" "*"? ident "(" ("int" ident ("," "int" ident)*)? ")" "{"
+// stmt* "}"
 Node *func() {
     expect("int");
     cur_func++;
-    Node *node = new_node(ND_FUNC_DEF, NULL, NULL);
+
+    Type *type = get_var_type();
+
     Token *tok = consume_ident();
 
     if (tok == NULL) {
-        error("トップレベルに関数が定義されていません");
+        error("トップレベルに関数または変数が定義されていません");
     }
 
-    expect("(");
+    if (consume("(")) {
+        return function_node(tok);
+    }
+
+    // 関数でない場合はグローバル変数定義
+    Node *gvar = define_gvar(tok, type);
+    expect(";");
+    return gvar;
+}
+
+// グローバル変数定義
+Node *define_gvar(Token *tok, Type *type) {
+    Node *node = new_node(ND_GVAR, NULL, NULL);
+    GVar *gvar = find_gvar(tok);
+    if (gvar != NULL) {
+        char name[100] = {0};
+        strncpy(name, tok->str, tok->len);
+        error("'%s'は既に定義されている変数です", name);
+        return NULL;
+    }
+
+    return dispatch_define_gvar(tok, node, type);
+}
+
+// 関数定義
+Node *function_node(Token *tok) {
+    Node *node = new_node(ND_FUNC_DEF, NULL, NULL);
     // 引数
     if (consume("int")) {
         Token *argTok = consume_ident();
@@ -80,7 +112,7 @@ Node *func() {
             argCur->argNext = argNext;
             argCur = argCur->argNext;
 
-            Type *type = get_lvar_type();
+            Type *type = get_var_type();
             define_variable(argTok, argNext, type);
 
             consume(",");
@@ -177,7 +209,7 @@ Node *stmt() {
 
         node->then = stmt();
     } else if (consume("int")) {
-        Type *type = get_lvar_type();
+        Type *type = get_var_type();
         Token *tok = consume_ident();
         node = calloc(1, sizeof(Node));
         define_variable(tok, node, type);
@@ -383,7 +415,7 @@ Node *primary() {
     return node;
 }
 
-Type *get_lvar_type() {
+Type *get_var_type() {
     Type *type = calloc(1, sizeof(Type));
     type->ty = INT;
     type->ptr_to = NULL;
@@ -475,4 +507,39 @@ void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
     node->offset = lvar->offset;
     node->type = type;
     locals[cur_func] = lvar;
+}
+
+// グローバル変数の定義
+Node *dispatch_define_gvar(Token *tok, Node *node, Type *type) {
+    int size = type->ty == PTR ? PTR_SIZE : INT_SIZE;
+    // 配列の場合
+    while (consume("[")) {
+        Type *t = calloc(1, sizeof(Type));
+        t->ty = ARRAY;
+        t->ptr_to = type;
+        t->array_size = expect_number();
+        size *= t->array_size;
+        type = t;
+        expect("]");
+    }
+
+    // 8の倍数にする
+    while (size % 8 != 0) {
+        size += 4;
+    }
+
+    GVar *gvar = calloc(1, sizeof(GVar));
+
+    gvar->next = globals;
+    gvar->name = tok->str;
+    gvar->len = tok->len;
+    gvar->type = type;
+    globals = gvar;
+
+    node->type = type;
+    node->offset = size;
+    node->str = tok->str;
+    node->len = tok->len;
+
+    return node;
 }

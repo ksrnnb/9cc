@@ -5,6 +5,7 @@
 
 int cur_func;
 LVar *locals[100];
+GVar *globals;
 
 int main(int argc, char **argv) {
     if (argc != 2) {
