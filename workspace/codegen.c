@@ -191,6 +191,13 @@ void gen(Node *node) {
                 return;
             }
 
+            if (t != NULL && t->ty == CHAR) {
+                printf("    pop rax\n");
+                printf("    movsx rax, BYTE PTR [rax]\n");
+                printf("    push rax\n");
+                return;
+            }
+
             printf("    pop rax\n");
             printf("    mov rax, [rax]\n");
             printf("    push rax\n");
@@ -211,6 +218,13 @@ void gen(Node *node) {
                 return;
             }
 
+            if (t != NULL && t->ty == CHAR) {
+                printf("    pop rax\n");
+                printf("    movsx rax, BYTE PTR [rax]\n");
+                printf("    push rax\n");
+                return;
+            }
+
             printf("    pop rax\n");
             printf("    mov rax, [rax]\n");
             printf("    push rax\n");
@@ -219,6 +233,16 @@ void gen(Node *node) {
         case ND_ASSIGN:
             gen_lval(node->lhs);
             gen(node->rhs);
+
+            Type *t = get_type(node);
+
+            if (t && t->ty == CHAR) {
+                printf("    pop rdi\n");
+                printf("    pop rax\n");
+                printf("    mov [rax], dil\n");
+                printf("    push rdi\n");
+                return;
+            }
 
             printf("    pop rdi\n");
             printf("    pop rax\n");
