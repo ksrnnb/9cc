@@ -14,7 +14,9 @@ char name[100] = {0};
 char argName[100] = {0};
 
 // 引数リスト 第6引数まで
-char *args[6] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char *args1[6] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
+char *args4[6] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+char *args8[6] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen_lval(Node *node) {
     if (node->kind == ND_DEREF) {
@@ -113,25 +115,30 @@ void gen(Node *node) {
                 next = next->argNext;
             }
 
-            int i = 0;
-            next = node->argNext;
-            while (next != NULL) {
-                strncpy(argName, next->str, next->len);
-                argName[next->len] = '\0';
-                printf("    push %s\n", args[i]);
-                i++;
-                next = next->argNext;
+            if (locals[cur_func]) {
+                int offset = locals[cur_func]->offset;
+                printf("    sub rsp, %d\n", offset);
             }
 
-            if (locals[cur_func]) {
-                int offset = locals[cur_func]->offset - argCount * VAR_SIZE;
-                printf("    sub rsp, %d\n", offset);
+            int i = 0;
+            Node *n = node->argNext;
+            while (n != NULL) {
+                if (n->size == CHAR_SIZE) {
+                    printf("    mov [rbp-%d], %s\n", n->offset, args1[i]);
+                } else if (n->size == INT_SIZE) {
+                    printf("    mov [rbp-%d], %s\n", n->offset, args4[i]);
+                } else if (n->size == PTR_SIZE) {
+                    printf("    mov [rbp-%d], %s\n", n->offset, args8[i]);
+                }
+                n = n->argNext;
+                i++;
             }
 
             while (node->next != NULL) {
                 gen(node->next);
                 node = node->next;
             }
+
             return;
         }
         case ND_FUNC_CALL: {
@@ -144,7 +151,7 @@ void gen(Node *node) {
 
             while (node->argNext != NULL) {
                 gen(node->argNext);
-                printf("    pop %s\n", args[argNum]);
+                printf("    pop %s\n", args8[argNum]);
                 argNum++;
                 node = node->argNext;
             }
@@ -184,27 +191,9 @@ void gen(Node *node) {
             // printf("NUM: %d\n\n", node->val);
             printf("    push %d\n", node->val);
             return;
-        case ND_LVAR: {
-            gen_lval(node);
-            Type *t = get_type(node);
-            if (t != NULL && t->ty == ARRAY) {
-                return;
-            }
-
-            if (t != NULL && t->ty == CHAR) {
-                printf("    pop rax\n");
-                printf("    movsx rax, BYTE PTR [rax]\n");
-                printf("    push rax\n");
-                return;
-            }
-
-            printf("    pop rax\n");
-            printf("    mov rax, [rax]\n");
-            printf("    push rax\n");
-            return;
-        }
+        case ND_LVAR:
         case ND_GVAR: {
-            if (node->is_define) {
+            if (node->kind == ND_GVAR && node->is_define) {
                 strncpy(name, node->str, node->len);
                 name[node->len] = '\0';
                 printf("%s:\n", name);
@@ -225,6 +214,14 @@ void gen(Node *node) {
                 return;
             }
 
+            if (t != NULL && t->ty == INT) {
+                printf("    pop rax\n");
+                printf("    movsx rax, DWORD PTR [rax]\n");
+                printf("    push rax\n");
+                return;
+            }
+
+            // PTR
             printf("    pop rax\n");
             printf("    mov rax, [rax]\n");
             printf("    push rax\n");
@@ -244,6 +241,15 @@ void gen(Node *node) {
                 return;
             }
 
+            if (t && t->ty == INT) {
+                printf("    pop rdi\n");
+                printf("    pop rax\n");
+                printf("    mov [rax], edi\n");  // int => 32bit
+                printf("    push rdi\n");
+                return;
+            }
+
+            // PTR
             printf("    pop rdi\n");
             printf("    pop rax\n");
             printf("    mov [rax], rdi\n");

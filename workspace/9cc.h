@@ -76,6 +76,7 @@ struct Node {
     int offset;      // kindかND_LVARの場合に使用
     char *str;       // 文字列（関数名）
     int len;         // 文字列の長さ
+    int size;        // 変数サイズ
     bool is_define;  // 定義式かどうか
 };
 
@@ -95,6 +96,7 @@ struct LVar {
     char *name;
     int len;
     int offset;  // RBPからのオフセット
+    int size;
 };
 
 // グローバル変数の型

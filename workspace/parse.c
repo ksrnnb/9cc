@@ -47,6 +47,10 @@ Node *new_node_num(int val) {
     node->kind = ND_NUM;
     node->val = val;
 
+    Type *type = calloc(1, sizeof(Type));
+    type->ty = INT;
+    node->type = type;
+
     return node;
 }
 
@@ -456,6 +460,7 @@ Node *gvar(Token *tok, Node *node) {
     node->type = gvar->type;
     node->str = tok->str;
     node->len = tok->len;
+    node->size = gvar->size;
     node->is_define = false;
 
     // a[3] => *(a+3)
@@ -482,6 +487,7 @@ Node *lvar(Token *tok, Node *node) {
     node->kind = ND_LVAR;
     node->offset = lvar->offset;
     node->type = lvar->type;
+    node->size = lvar->size;
 
     // a[3] => *(a+3)
     // a[expr()] = *(a+expr())
@@ -512,17 +518,13 @@ void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
         expect("]");
     }
 
-    // 8の倍数にする
-    while (size % 8 != 0) {
-        size += 1;
-    }
-
     LVar *lvar = calloc(1, sizeof(LVar));
 
     lvar->next = locals[cur_func];
     lvar->name = tok->str;
     lvar->len = tok->len;
     lvar->type = type;
+    lvar->size = size;
 
     if (locals[cur_func] == NULL) {
         lvar->offset = size;
@@ -533,6 +535,7 @@ void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
     node->kind = ND_LVAR;
     node->offset = lvar->offset;
     node->type = type;
+    node->size = size;
     locals[cur_func] = lvar;
 }
 
@@ -564,11 +567,6 @@ Node *dispatch_define_gvar(Token *tok, Node *node, Type *type) {
         expect("]");
     }
 
-    // 8の倍数にする
-    while (size % 8 != 0) {
-        size += 4;
-    }
-
     GVar *gvar = calloc(1, sizeof(GVar));
 
     gvar->next = globals;
@@ -582,6 +580,7 @@ Node *dispatch_define_gvar(Token *tok, Node *node, Type *type) {
     node->offset = size;
     node->str = tok->str;
     node->len = tok->len;
+    node->size = size;
     node->is_define = true;
 
     return node;
