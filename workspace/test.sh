@@ -21,6 +21,32 @@ assert() {
     fi
 }
 
+# sizeof (char)
+assert 1 "int main() {
+    char x;
+    return sizeof(x);
+}"
+
+assert 8 "int main() {
+    char *x;
+    return sizeof(x);
+}"
+
+assert 1 "int main() {
+    char *x;
+    return sizeof(*x);
+}"
+
+# char
+assert 3 "int main() {
+    char x[3];
+    x[0] = -1;
+    x[1] = 2;
+    int y;
+    y = 4;
+    return x[0] + y;
+}"
+
 # global variables
 assert 1 "
 int a;

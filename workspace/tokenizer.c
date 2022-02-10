@@ -49,6 +49,20 @@ bool consume(char *op) {
     return true;
 }
 
+TypeName consume_type() {
+    if (isExpectedSymbol("int")) {
+        token = token->next;
+        return INT;
+    }
+
+    if (isExpectedSymbol("char")) {
+        token = token->next;
+        return CHAR;
+    }
+
+    return -1;
+}
+
 Token *consume_ident() {
     if (token->kind != TK_IDENT) {
         return NULL;
@@ -127,6 +141,12 @@ Token *tokenize() {
         if (strncmp(p, "int", 3) == 0 && !is_alnum(p[3])) {
             cur = new_token(TK_RESERVED, cur, p, 3);
             p += 3;
+            continue;
+        }
+
+        if (strncmp(p, "char", 4) == 0 && !is_alnum(p[4])) {
+            cur = new_token(TK_RESERVED, cur, p, 4);
+            p += 4;
             continue;
         }
 

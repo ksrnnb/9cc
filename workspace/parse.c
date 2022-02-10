@@ -18,7 +18,7 @@ Node *unary();
 Node *primary();
 
 Node *function_node(Token *tok);
-Type *get_var_type();
+Type *get_var_type(TypeName tn);
 Node *lvar(Token *tok, Node *node);
 void define_variable(Token *tok, Node *node, Type *type);
 Node *define_gvar(Token *tok, Type *type);
@@ -61,10 +61,10 @@ void program() {
 // program = "int" "*"? ident "(" ("int" ident ("," "int" ident)*)? ")" "{"
 // stmt* "}"
 Node *func() {
-    expect("int");
+    TypeName tn = consume_type();
     cur_func++;
 
-    Type *type = get_var_type();
+    Type *type = get_var_type(tn);
 
     Token *tok = consume_ident();
 
@@ -99,8 +99,9 @@ Node *define_gvar(Token *tok, Type *type) {
 // 関数定義
 Node *function_node(Token *tok) {
     Node *node = new_node(ND_FUNC_DEF, NULL, NULL);
+    TypeName tn;
     // 引数
-    if (consume("int")) {
+    if ((tn = consume_type()) != NIL) {
         Token *argTok = consume_ident();
         Node *argHead = calloc(1, sizeof(Node));
         argHead->next = NULL;
@@ -113,11 +114,11 @@ Node *function_node(Token *tok) {
             argCur->argNext = argNext;
             argCur = argCur->argNext;
 
-            Type *type = get_var_type();
+            Type *type = get_var_type(tn);
             define_variable(argTok, argNext, type);
 
             consume(",");
-            consume("int");
+            tn = consume_type();
             argTok = consume_ident();
         }
 
@@ -152,6 +153,7 @@ Node *function_node(Token *tok) {
 //      | "int" "*"* ident ";"
 Node *stmt() {
     Node *node;
+    TypeName tn;
 
     if (consume("return")) {
         node = calloc(1, sizeof(Node));
@@ -209,8 +211,8 @@ Node *stmt() {
         }
 
         node->then = stmt();
-    } else if (consume("int")) {
-        Type *type = get_var_type();
+    } else if ((tn = consume_type()) != NIL) {
+        Type *type = get_var_type(tn);
         Token *tok = consume_ident();
         node = calloc(1, sizeof(Node));
         define_variable(tok, node, type);
@@ -279,7 +281,7 @@ Node *add() {
     for (;;) {
         if (consume("+")) {
             if (node->type != NULL && node->type->ty != INT) {
-                int n = node->type->ptr_to->ty == INT ? INT_SIZE : PTR_SIZE;
+                int n = get_size(node->type->ptr_to);
                 // *p + 3 => 3 * 4 = 12byteだけ進める
                 Node *newNode = new_node(ND_MUL, mul(), new_node_num(n));
                 node = new_node(ND_ADD, node, newNode);
@@ -288,7 +290,7 @@ Node *add() {
             }
         } else if (consume("-")) {
             if (node->type != NULL && node->type->ty != INT) {
-                int n = node->type->ptr_to->ty == INT ? INT_SIZE : PTR_SIZE;
+                int n = get_size(node->type->ptr_to);
                 Node *newNode = new_node(ND_MUL, mul(), new_node_num(n));
                 node = new_node(ND_SUB, node, newNode);
             } else {
@@ -346,11 +348,7 @@ Node *unary() {
     if (consume("sizeof")) {
         Node *node = unary();
         Type *t = get_type(node);
-        if (t != NULL && t->ty == PTR) {
-            return new_node_num(PTR_SIZE);
-        }
-
-        return new_node_num(INT_SIZE);
+        return new_node_num(get_size(t));
     }
 
     if (consume("+")) {
@@ -416,9 +414,9 @@ Node *primary() {
     return node;
 }
 
-Type *get_var_type() {
+Type *get_var_type(TypeName tn) {
     Type *type = calloc(1, sizeof(Type));
-    type->ty = INT;
+    type->ty = tn;
     type->ptr_to = NULL;
     while (consume("*")) {
         Type *next = calloc(1, sizeof(Type));
@@ -501,7 +499,7 @@ Node *lvar(Token *tok, Node *node) {
 }
 
 void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
-    int size = type->ty == PTR ? PTR_SIZE : INT_SIZE;
+    int size = get_size(type);
     // 配列の場合
     while (consume("[")) {
         Type *t = calloc(1, sizeof(Type));
@@ -516,7 +514,7 @@ void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
 
     // 8の倍数にする
     while (size % 8 != 0) {
-        size += 4;
+        size += 1;
     }
 
     LVar *lvar = calloc(1, sizeof(LVar));
@@ -538,9 +536,23 @@ void dispatch_define_lvar(Token *tok, Node *node, Type *type) {
     locals[cur_func] = lvar;
 }
 
+// 型のサイズを返す
+int get_size(Type *type) {
+    switch (type->ty) {
+        case PTR:
+            return PTR_SIZE;
+        case INT:
+            return INT_SIZE;
+        case CHAR:
+            return CHAR_SIZE;
+    }
+    return -1;
+}
+
 // グローバル変数の定義
 Node *dispatch_define_gvar(Token *tok, Node *node, Type *type) {
-    int size = type->ty == PTR ? PTR_SIZE : INT_SIZE;
+    int size = get_size(type);
+
     // 配列の場合
     while (consume("[")) {
         Type *t = calloc(1, sizeof(Type));

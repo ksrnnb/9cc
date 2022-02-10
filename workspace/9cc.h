@@ -3,6 +3,8 @@
 #define VAR_SIZE 8
 #define INT_SIZE 4
 #define PTR_SIZE 8
+#define CHAR_SIZE 1
+#define NIL -1
 
 typedef struct Node Node;
 
@@ -45,8 +47,15 @@ typedef enum {
     TK_EOF,       // 終端
 } TokenKind;
 
+typedef enum {
+    INT,
+    PTR,
+    ARRAY,
+    CHAR,
+} TypeName;
+
 struct Type {
-    enum { INT, PTR, ARRAY } ty;
+    TypeName ty;
     struct Type *ptr_to;
     size_t array_size;
 };
@@ -131,6 +140,8 @@ int expect_number();
 
 // 期待している記号である場合、トークンを1つ読み進んでtrueを返す
 bool consume(char *op);
+// 型名
+TypeName consume_type();
 
 // 識別子の場合、現在のトークンを返して、トークンを1つ進める
 Token *consume_ident();
@@ -149,3 +160,6 @@ void error(char *fmt, ...);
 
 // lhs, rhsからtypeを再起的にみていく
 Type *get_type(Node *node);
+
+// 型のサイズ
+int get_size(Type *type);
