@@ -243,6 +243,34 @@ Token *tokenize() {
             continue;
         }
 
+        if (*p == '"') {
+            p++;
+            char *c = p;
+            while (*c != '"') {
+                c++;
+            }
+            int len = c - p;
+            cur = new_token(TK_STRING, cur, p, len);
+            p = c + 1;
+            continue;
+        }
+
+        if (strncmp(p, "//", 2) == 0) {
+            p += 2;
+            while (*p != '\n') {
+                p++;
+            }
+            continue;
+        }
+
+        // ブロックコメントをスキップ
+        if (strncmp(p, "/*", 2) == 0) {
+            char *q = strstr(p + 2, "*/");
+            if (!q) error_at(p, "コメントが閉じられていません");
+            p = q + 2;
+            continue;
+        }
+
         if (strchr("+-*/()<>=;{},&[]", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
@@ -256,18 +284,6 @@ Token *tokenize() {
             // はじめの文字の位置から、数字分だけ進んだ位置を引く
             // =>トークンの長さがわかる
             cur->len = q - p;
-            continue;
-        }
-
-        if (*p == '"') {
-            p++;
-            char *c = p;
-            while (*c != '"') {
-                c++;
-            }
-            int len = c - p;
-            cur = new_token(TK_STRING, cur, p, len);
-            p = c + 1;
             continue;
         }
 

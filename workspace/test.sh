@@ -21,6 +21,21 @@ assert() {
     fi
 }
 
+# comment
+assert 100 'int main() {
+    char *p;
+    p = "abc//def";
+    return p[5];
+}'
+
+assert 10 'int main() {
+    // return 1;
+    /*
+       return 5;
+    */
+    return 10;
+}'
+
 # string
 # ASCII code: a = 97, b = 98, ...
 assert 100 'int main() {
