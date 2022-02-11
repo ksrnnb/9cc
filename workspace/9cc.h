@@ -38,12 +38,14 @@ typedef enum {
     ND_BLOCK,      // { }
     ND_ADDR,       // 単項&
     ND_DEREF,      // 単項*
+    ND_STRING,     // 文字列
 } NodeKind;
 
 typedef enum {
     TK_RESERVED,  // 記号
     TK_IDENT,     // 識別子
     TK_NUM,       // 数字
+    TK_STRING,    // 文字列
     TK_EOF,       // 終端
 } TokenKind;
 
@@ -60,24 +62,33 @@ struct Type {
     size_t array_size;
 };
 
+typedef struct StringToken StringToken;
+
+struct StringToken {
+    char *name;
+    int index;
+    StringToken *next;
+};
+
 struct Node {
-    NodeKind kind;   // ノードの型
-    Node *lhs;       // 左辺
-    Node *rhs;       // 右辺
-    Node *cond;      // if/while/for文で利用
-    Node *then;      // if/while文で利用
-    Node *els;       // if文で利用
-    Node *ini;       // for文
-    Node *inc;       // for文
-    Node *next;      // ブロック
-    Node *argNext;   // 引数
-    Type *type;      // ND_LVAR
-    int val;         // kindがND_NUMの場合に使用
-    int offset;      // kindかND_LVARの場合に使用
-    char *str;       // 文字列（関数名）
-    int len;         // 文字列の長さ
-    int size;        // 変数サイズ
-    bool is_define;  // 定義式かどうか
+    NodeKind kind;        // ノードの型
+    Node *lhs;            // 左辺
+    Node *rhs;            // 右辺
+    Node *cond;           // if/while/for文で利用
+    Node *then;           // if/while文で利用
+    Node *els;            // if文で利用
+    Node *ini;            // for文
+    Node *inc;            // for文
+    Node *next;           // ブロック
+    Node *argNext;        // 引数
+    Type *type;           // ND_LVAR
+    int val;              // kindがND_NUMの場合に使用
+    int offset;           // kindかND_LVARの場合に使用
+    char *str;            // 文字列（関数名）
+    int len;              // 文字列の長さ
+    int size;             // 変数サイズ
+    bool is_define;       // 定義式かどうか
+    StringToken *string;  // 文字列
 };
 
 struct Token {
@@ -114,6 +125,9 @@ extern LVar *locals[];
 // グローバル変数
 extern GVar *globals;
 
+// 文字列用
+extern StringToken *strings;
+
 extern int cur_func;
 
 // 入力プログラム
@@ -147,6 +161,9 @@ TypeName consume_type();
 
 // 識別子の場合、現在のトークンを返して、トークンを1つ進める
 Token *consume_ident();
+
+// 文字列
+Token *consume_string();
 
 // 終端かどうか
 bool at_eof();

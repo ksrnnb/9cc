@@ -30,6 +30,12 @@ int main(int argc, char **argv) {
         }
     }
 
+    printf(".data\n");
+    for (StringToken *s = strings; s; s = s->next) {
+        printf(".LC%d:\n", s->index);
+        printf("    .string \"%s\"\n", s->name);
+    }
+
     // .textの下から機械語にされる実行文
     printf(".text\n");
     cur_func = 0;

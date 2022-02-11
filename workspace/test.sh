@@ -21,6 +21,20 @@ assert() {
     fi
 }
 
+# string
+# ASCII code: a = 97, b = 98, ...
+assert 100 'int main() {
+    char *a;
+    a = "abcd";
+    return a[3];
+}'
+
+assert 97 'int main() {
+    char *a;
+    a = "abcd";
+    return a[0];
+}'
+
 # char
 assert 3 "int main() {
     char x[3];

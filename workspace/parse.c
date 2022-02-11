@@ -30,6 +30,9 @@ Node *code[100];
 // 現在みているトークン
 Token *token;
 
+// 文字列用
+StringToken *strings;
+
 // ローカル変数用
 LVar *locals[100];
 int cur_func = 0;
@@ -51,6 +54,25 @@ Node *new_node_num(int val) {
     type->ty = INT;
     node->type = type;
 
+    return node;
+}
+
+Node *new_node_string(Token *tok) {
+    StringToken *s = calloc(1, sizeof(StringToken));
+    s->name = calloc(100, sizeof(char));
+    strncpy(s->name, tok->str, tok->len);
+
+    if (strings) {
+        s->index = strings->index + 1;
+    } else {
+        s->index = 0;
+    }
+
+    s->next = strings;
+    strings = s;
+
+    Node *node = new_node(ND_STRING, NULL, NULL);
+    node->string = strings;
     return node;
 }
 
@@ -380,6 +402,9 @@ Node *primary() {
 
     Token *tok = consume_ident();
     if (tok == NULL) {
+        if (tok = consume_string()) {
+            return new_node_string(tok);
+        }
         return new_node_num(expect_number());
     }
 

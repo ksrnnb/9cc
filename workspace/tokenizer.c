@@ -49,6 +49,17 @@ bool consume(char *op) {
     return true;
 }
 
+Token *consume_string() {
+    if (token->kind != TK_STRING) {
+        return NULL;
+    }
+
+    Token *tok = token;
+    token = token->next;
+
+    return tok;
+}
+
 TypeName consume_type() {
     if (isExpectedSymbol("int")) {
         token = token->next;
@@ -209,6 +220,18 @@ Token *tokenize() {
             // はじめの文字の位置から、数字分だけ進んだ位置を引く
             // =>トークンの長さがわかる
             cur->len = q - p;
+            continue;
+        }
+
+        if (*p == '"') {
+            p++;
+            char *c = p;
+            while (*c != '"') {
+                c++;
+            }
+            int len = c - p;
+            cur = new_token(TK_STRING, cur, p, len);
+            p = c + 1;
             continue;
         }
 

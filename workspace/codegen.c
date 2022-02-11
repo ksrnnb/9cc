@@ -227,6 +227,9 @@ void gen(Node *node) {
             printf("    push rax\n");
             return;
         }
+        case ND_STRING:
+            printf("    push offset .LC%d\n", node->string->index);
+            return;
         case ND_ASSIGN:
             gen_lval(node->lhs);
             gen(node->rhs);
