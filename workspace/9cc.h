@@ -119,6 +119,9 @@ struct GVar {
     int size;
 };
 
+// 入力ファイル
+extern char *filename;
+
 // ローカル変数
 extern LVar *locals[];
 
@@ -138,6 +141,9 @@ extern Token *token;
 
 // 解析したstatementを格納する
 extern Node *code[100];
+
+// ファイルの内容を返す
+char *read_file(char *path);
 
 // トークン生成
 Token *tokenize();

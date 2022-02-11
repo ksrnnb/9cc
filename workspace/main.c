@@ -7,12 +7,16 @@ int cur_func;
 LVar *locals[100];
 GVar *globals;
 
+// 入力ファイル
+char *filename = "./func/9cc.c";
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "%s: argument is invalid\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
+    // user_input = read_file(filename);
     user_input = argv[1];
     token = tokenize();
     program();
